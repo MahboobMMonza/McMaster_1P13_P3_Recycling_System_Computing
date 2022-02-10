@@ -14,8 +14,8 @@ be adapted to use with the corresponding hardware.
 
 To utilize this code, ensure that a Raspberry Pi 4 is available with system
 specifications for hardware and software meeting the minimum requirements
-outlined by McMaster University. Download and import _Common_ and
-_Student_Files_ folders **only** to the Pi. Ensure that Quanser Interactive
+outlined by McMaster University. Download and import [Common][9] and
+[Student_Files][10] folders **only** to the Pi. Ensure that Quanser Interactive
 Labs simulation program is installed with specifications outlined by McMaster
 University, or the corresponding hardware is present. Ensure IP address matches
 computer IP address when using simulation.
@@ -41,3 +41,5 @@ to **False**, and set it to **True** to use hardware.
 [6]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/project_sample_updated.py
 [7]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/project_sample2_updated.py
 [8]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/corrected_project_sample.py
+[9]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Common
+[10]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Student_Files
