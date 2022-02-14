@@ -70,47 +70,18 @@ elif project_identifier == 'P3B':
 # ========================= Q-Bot Movement and Positioning ========================= #
 
 
-def check_home(threshold=0.05):
-    """
-    Function: check_home()
-
-    Purpose: This function checks whether the Q-Bot is within an acceptable
-    distance away from the home position.
-
-    Inputs: threshold - real number (default 0.05)
-    Outputs: real number
-
-    Author: Mohammad Mahdi Mahboob, Liam Walker
-    Last Update: 2022/02/07
-    """
-    # Constant to track the Q-Bot's home (stopping) position
-    BOT_HOME = (1.5, 0, 0)
-    # Get the bot's current position
-    pos = bot.position()
-    # Check each coordinate of the home position against the corresponding
-    # coordinate of the bot. If they are further than the threshold distance,
-    # return -3000 to indicate it is not there. If all 3 positions are within
-    # the threshold, then return the difference between the home position
-    # y-coordinate and the bot's y-coordinate, as that is the most affected
-    # dimension by movement along the line in this area.
-    for i, j in zip(BOT_HOME, pos):
-        if i - j > threshold:
-            return -3000
-    return BOT_HOME[1] - pos[1]
-
-
-def bot_align(home=False):
+def bot_align():
     """
     Function: bot_align()
 
     Purpose: This function aligns the bot line sensors to the line so that the
     hopper faces perpendicular to boxes or the Q-Arm.
 
-    Inputs: home - Boolean (default to False)
+    Inputs: None
     Outputs: None
 
     Author: Liam Walker, Mohammad Mahdi Mahboob
-    Last Update: 2022/02/07
+    Last Update: 2022/02/14
     """
     # Read the value of the sensors until [1, 1] has been read twice to
     # Ensure it is more so in the middle. If it has not been read twice,
@@ -145,21 +116,17 @@ def bot_align(home=False):
         readings = bot.line_following_sensors()
         # Increment the count if a [1, 1] reading is found.
         count += (readings[0] + readings[1]) // 2
-    # If the bot is not home, move forward slightly to ensure it is dumping
-    # inside a bin
-    if not home:
-        bot.forward_distance(0.05)
 
 
-def line_follow(bin_num=-1):
+def line_follow(bin_num=-1, start_bin=-1):
     """
     Function: line_follow()
 
     Purpose: This function moves the Q-Bot along the line until it reaches
     the given target location.
 
-    Inputs: bin_num - integer (default -1)
-    Outputs: None
+    Inputs: bin_num - integer (default -1); start_bin - integer
+    Outputs: integer
 
     Author: Mohammad Mahdi Mahboob, Liam Walker
     Last Update: 2022/02/13
@@ -173,14 +140,14 @@ def line_follow(bin_num=-1):
     PASS_DIST = 0.2
     SPEED = 0.05
     # tracks the number of bins passed
-    cur_bin = 0
+    cur_bin = start_bin
     # lists to hold line sensor readings and wheel speeds
     reading, speeds = [], [0, 0]
     # Flag to check if currently near a bin
     encounter_bin = False
     print('Target:', bin_num)
     # While the bot is not at the desired bin or not home
-    while cur_bin < bin_num or (bin_num == -1 and check_home(0.025) == -3000):
+    while cur_bin < bin_num:
         # Check if bot reads a nearby object. If it does, it might have
         # encountered a bin if it hasn't already. Add 1 to the bin count and
         # set the flag to True until the bin has been passed
@@ -237,9 +204,10 @@ def line_follow(bin_num=-1):
     # align it according to the location it has stopped.
     else:
         bot.stop()
-        bot_align(bin_num == -1)
+        bot_align()
         print("Bin/stop location found")
         bot.deactivate_ultrasonic_sensor()
+    return cur_bin - 1
 
 
 def drop_container(duration):
@@ -264,12 +232,64 @@ def drop_container(duration):
     bot.deactivate_stepper_motor()
 
 
-# ========================= Container Categorizing and Management ========================= #
+# ========================= Testing Plans ========================= #
 
 
-# New code coming soon
-def dispense_container():
-    pass
+def line_sensor_test():
+    tests = ["Testing [1, 1]", "Testing [1, 0]", "Testing [0, 0]", "Testing [0, 1]"]
+    print("Testing line sensor")
+    for test in tests:
+        print(test)
+        for i in range(5):
+            print(bot.line_following_sensors())
+            time.sleep(2)
+        print("Prepare for next test")
+        time.sleep(5)
+
+
+def ultrasonic_test_1():
+    bot.activate_ultrasonic_sensor()
+    print("Testing read values for different ranges")
+    print("Direct readings")
+    for i in range(20):
+        print("Move object along sensor")
+        print(bot.read_ultrasonic_sensor())
+        time.sleep(3)
+    print("Angled readings")
+    for i in range(20):
+        print("Move object perpendicular to sensor direction")
+        print(bot.read_ultrasonic_sensor())
+        time.sleep(3)
+    bot.deactivate_ultrasonic_sensor()
+
+
+def ultrasonic_test_2():
+    bot.activate_ultrasonic_sensor()
+    print("Testing detection values for different ranges")
+    min_dist = 0.1
+    max_dist = 0.2
+    print("Within meet range")
+    for i in range(20):
+        print("Move object along sensor")
+        print(0 < bot.read_ultrasonic_sensor() < min_dist)
+        time.sleep(3)
+
+    print("Out of meet range")
+    for i in range(20):
+        print("Move object along sensor")
+        reading = bot.read_ultrasonic_sensor()
+        print(max_dist < reading or reading == 0)
+        time.sleep(3)
+
+
+def hopper_test():
+    bot.activate_stepper_motor()
+    bot.rotate_stepper_motor_cw(5)
+    print("Testing stepper motor and hopper")
+    for i in range(5):
+        time.sleep(3)
+        bot.rotate_stepper_motor_ccw(5)
+        time.sleep(3)
 
 
 # ========================= Main Function ========================= #
@@ -288,19 +308,33 @@ def main():
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
     """
-    while True:
-        destination = dispense_container()
-        if destination == -1:
-            break
-        line_follow(destination)
-        time.sleep(1)
-        drop_container(5)
-        time.sleep(1)
-        line_follow()
-        print(check_home(0.025))
+    duration = 5
+    destination = line_follow(2)
+    time.sleep(1)
+    drop_container(duration)
+    line_follow(5, destination)
 
 
-main()
+# ========================= Test Function Calls ========================= #
+
+
+def test():
+    print("Running Tests")
+    tests = [line_sensor_test, ultrasonic_test_1,
+             ultrasonic_test_2, hopper_test]
+    for test_function in tests:
+        time.sleep(5)
+        print("Prepare for next test")
+        test_function()
+        time.sleep(10)
+    print("Tests completed")
+
+
+# ======================================================================= #
+
+test()
+# main()
+
 # ---------------------------------------------------------------------------------
 # STUDENT CODE ENDS
 # ---------------------------------------------------------------------------------
