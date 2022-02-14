@@ -1,5 +1,5 @@
 
-# 1P13 Project 3 Q-bot Code
+# 1P13 Project 3 Q-Bot Code
 
 ## McMaster University Engineering 1P13 Project 3 Mon&#8209;21 Computing Code
 
