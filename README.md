@@ -20,8 +20,9 @@ Labs simulation program is installed with specifications outlined by McMaster
 University, or the corresponding hardware is present. Ensure IP address matches
 computer IP address when using simulation.
 
-If using simulation, set [hardware][1] variable inside [project_sample.py][3] file
-to **False**, and set it to **True** to use hardware.
+To use the virtual system code, run [virtual_environment_code.py][1] when a
+connection to the simulation has been made. To use the physical system code,
+run [physical_environment_code.py][3] when connected to a physical Q-Bot.
 
 ### Navigation
 
@@ -31,15 +32,15 @@ to **False**, and set it to **True** to use hardware.
   - [project_sample_updated.py][6]: Version 3 (Updated 2022/01/31)
   - [project_sample2_updated.py][7]: Version 4 (Updated 2022/02/06)
   - [corrected_project_sample.py][8]: Version 5 (Updated 2022/02/06)
-- Main code can be found inside [project_sample.py][3]
+- Sorting system codes for either environment can be found inside [Student_Files][10].
 
-[1]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/blob/main/Student_Files/project_sample.py#L10
-[2]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions
-[3]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/blob/main/Student_Files/project_sample.py
-[4]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/project_sample.py
-[5]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/project_sample2.py
-[6]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/project_sample_updated.py
-[7]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/project_sample2_updated.py
-[8]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Previous_Versions/corrected_project_sample.py
-[9]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Common
-[10]: https://github.com/MahboobMMonza/McMaster_1P13_P3_Recycling_System_Computing/tree/main/Student_Files
+[1]: Student_Files/virtual_environment_code.py
+[2]: Previous_Versions
+[3]: Student_Files/physical_environment_code.py
+[4]: Previous_Versions/project_sample.py
+[5]: Previous_Versions/project_sample2.py
+[6]: Previous_Versions/project_sample_updated.py
+[7]: Previous_Versions/project_sample2_updated.py
+[8]: Previous_Versions/corrected_project_sample.py
+[9]: Common
+[10]: Student_Files
