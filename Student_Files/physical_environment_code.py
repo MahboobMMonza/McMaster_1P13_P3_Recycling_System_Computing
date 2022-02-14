@@ -1,74 +1,77 @@
 import sys
 import time
 import random
-sys.path.append('../')
 from Common.project_library import *
+
+sys.path.append('../')
 
 # Modify the information below according to you setup and uncomment the entire section
 
 # 1. Interface Configuration
-project_identifier = 'P3B' # enter a string corresponding to P0, P2A, P2A, P3A, or P3B
-ip_address = '169.254.134.253' # enter your computer's IP address
-hardware = True # True when working with hardware. False when working in the simulation
+project_identifier = 'P3B'  # enter a string corresponding to P0, P2A, P2A, P3A, or P3B
+ip_address = '169.254.134.253'  # enter your computer's IP address
+hardware = True  # True when working with hardware. False when working in the simulation
 
 # 2. Servo Table configuration
-short_tower_angle = 270 # enter the value in degrees for the identification tower 
-tall_tower_angle = 0 # enter the value in degrees for the classification tower
-drop_tube_angle = 180 # enter the value in degrees for the drop tube. clockwise rotation from zero degrees
+short_tower_angle = 270  # enter the value in degrees for the identification tower
+tall_tower_angle = 0  # enter the value in degrees for the classification tower
+drop_tube_angle = 180  # enter the value in degrees for the drop tube. clockwise rotation from zero degrees
 
 # 3. Qbot Configuration
-bot_camera_angle = -21.5 # angle in degrees between -21.5 and 0
+bot_camera_angle = -21.5  # angle in degrees between -21.5 and 0
 
 # 4. Bin Configuration
 # Configuration for the colors for the bins and the lines leading to those bins.
 # Note: The line leading up to the bin will be the same color as the bin 
 
-bin1_offset = 0.17 # offset in meters
-bin1_color = [1,0,0] # e.g. [1,0,0] for red
+bin1_offset = 0.17  # offset in meters
+bin1_color = [1, 0, 0]  # e.g. [1,0,0] for red
 bin2_offset = 0.17
-bin2_color = [0,1,0]
+bin2_color = [0, 1, 0]
 bin3_offset = 0.17
-bin3_color = [0,0,1]
+bin3_color = [0, 0, 1]
 bin4_offset = 0.17
-bin4_color = [0,0,0]
+bin4_color = [0, 0, 0]
 
-#--------------- DO NOT modify the information below -----------------------------
+# --------------- DO NOT modify the information below -----------------------------
 
 if project_identifier == 'P0':
     QLabs = configure_environment(project_identifier, ip_address, hardware).QLabs
-    bot = qbot(0.1,ip_address,QLabs,None,hardware)
-    
-elif project_identifier in ["P2A","P2B"]:
+    bot = qbot(0.1, ip_address, QLabs, None, hardware)
+
+elif project_identifier in ["P2A", "P2B"]:
     QLabs = configure_environment(project_identifier, ip_address, hardware).QLabs
-    arm = qarm(project_identifier,ip_address,QLabs,hardware)
+    arm = qarm(project_identifier, ip_address, QLabs, hardware)
 
 elif project_identifier == 'P3A':
-    table_configuration = [short_tower_angle,tall_tower_angle,drop_tube_angle]
-    configuration_information = [table_configuration,None, None] # Configuring just the table
-    QLabs = configure_environment(project_identifier, ip_address, hardware,configuration_information).QLabs
-    table = servo_table(ip_address,QLabs,table_configuration,hardware)
-    arm = qarm(project_identifier,ip_address,QLabs,hardware)
-    
+    table_configuration = [short_tower_angle, tall_tower_angle, drop_tube_angle]
+    configuration_information = [table_configuration, None, None]  # Configuring just the table
+    QLabs = configure_environment(project_identifier, ip_address, hardware, configuration_information).QLabs
+    table = servo_table(ip_address, QLabs, table_configuration, hardware)
+    arm = qarm(project_identifier, ip_address, QLabs, hardware)
+
 elif project_identifier == 'P3B':
-    table_configuration = [short_tower_angle,tall_tower_angle,drop_tube_angle]
+    table_configuration = [short_tower_angle, tall_tower_angle, drop_tube_angle]
     qbot_configuration = [bot_camera_angle]
-    bin_configuration = [[bin1_offset,bin2_offset,bin3_offset,bin4_offset],[bin1_color,bin2_color,bin3_color,bin4_color]]
-    configuration_information = [table_configuration,qbot_configuration, bin_configuration]
-    QLabs = configure_environment(project_identifier, ip_address, hardware,configuration_information).QLabs
-    table = servo_table(ip_address,QLabs,table_configuration,hardware)
-    arm = qarm(project_identifier,ip_address,QLabs,hardware)
+    bin_configuration = [[bin1_offset, bin2_offset, bin3_offset, bin4_offset],
+                         [bin1_color, bin2_color, bin3_color, bin4_color]]
+    configuration_information = [table_configuration, qbot_configuration, bin_configuration]
+    QLabs = configure_environment(project_identifier, ip_address, hardware, configuration_information).QLabs
+    table = servo_table(ip_address, QLabs, table_configuration, hardware)
+    arm = qarm(project_identifier, ip_address, QLabs, hardware)
     bins = bins(bin_configuration)
-    bot = qbot(0.1,ip_address,QLabs,bins,hardware)
-    
+    bot = qbot(0.1, ip_address, QLabs, bins, hardware)
 
-#---------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------
 # STUDENT CODE BEGINS
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 
-#========================= Q-Bot Movement and Positioning =========================#
+# ========================= Q-Bot Movement and Positioning ========================= #
+
 
 def check_home(threshold=0.05):
-    '''
+    """
     Function: check_home()
 
     Purpose: This function checks whether the Q-Bot is within an acceptable
@@ -79,12 +82,12 @@ def check_home(threshold=0.05):
 
     Author: Mohammad Mahdi Mahboob, Liam Walker
     Last Update: 2022/02/07
-    '''
+    """
     # Constant to track the Q-Bot's home (stopping) position
     BOT_HOME = (1.5, 0, 0)
     # Get the bot's current position
     pos = bot.position()
-    # Check each coordinate of the home position against the correspinding
+    # Check each coordinate of the home position against the corresponding
     # coordinate of the bot. If they are further than the threshold distance,
     # return -3000 to indicate it is not there. If all 3 positions are within
     # the threshold, then return the difference between the home position
@@ -97,20 +100,20 @@ def check_home(threshold=0.05):
 
 
 def bot_align(home=False):
-    '''
+    """
     Function: bot_align()
 
     Purpose: This function aligns the bot line sensors to the line so that the
     hopper faces perpendicular to boxes or the Q-Arm.
-    
+
     Inputs: home - Boolean (default to False)
     Outputs: None
 
     Author: Liam Walker, Mohammad Mahdi Mahboob
     Last Update: 2022/02/07
-    '''
+    """
     # Read the value of the sensors until [1, 1] has been read twice to
-    # Ensure it is moreso in the middle. If it has not been read twice,
+    # Ensure it is more so in the middle. If it has not been read twice,
     # slightly rotate the bot towards the line.
     readings = bot.line_following_sensors()
     # Keep count of the location of the wires. Initial calculation is done
@@ -149,7 +152,7 @@ def bot_align(home=False):
 
 
 def line_follow(bin_num=-1):
-    '''
+    """
     Function: line_follow()
 
     Purpose: This function moves the Q-Bot along the line until it reaches
@@ -160,11 +163,11 @@ def line_follow(bin_num=-1):
 
     Author: Mohammad Mahdi Mahboob, Liam Walker
     Last Update: 2022/02/13
-    '''
+    """
     # Turn on the ultrasonic sensor
     bot.activate_ultrasonic_sensor()
     # Constants for dictating minimum and maximum thresholds to determine
-    # if the bot has passed a bin, and for the mimimum speed of the bot's
+    # if the bot has passed a bin, and for the minimum speed of the bot's
     # wheels
     PROX_DIST = 0.1
     PASS_DIST = 0.2
@@ -177,7 +180,7 @@ def line_follow(bin_num=-1):
     encounter_bin = False
     print('Target:', bin_num)
     # While the bot is not at the desired bin or not home
-    while cur_bin < bin_num or (bin_num == -1 and check_home() == -3000):
+    while cur_bin < bin_num or (bin_num == -1 and check_home(0.025) == -3000):
         # Check if bot reads a nearby object. If it does, it might have
         # encountered a bin if it hasn't already. Add 1 to the bin count and
         # set the flag to True until the bin has been passed
@@ -185,7 +188,7 @@ def line_follow(bin_num=-1):
             cur_bin += 1
             encounter_bin = True
         # Else if readings are far away then a bin has been passed, reset
-        # flag to False to detect the next bin
+        # flag to False and detect the next bin
         elif encounter_bin and bot.read_ultrasonic_sensor() > PASS_DIST:
             encounter_bin = False
         # Output to check if bin detection is correct
@@ -240,18 +243,18 @@ def line_follow(bin_num=-1):
 
 
 def drop_container(duration):
-    '''
+    """
     Function: drop_container()
 
     Purpose: This function rotates the actuator to tilt the hopper and
-    drop the containers inside of the bin.
+    drop the containers inside the bin.
 
     Inputs: angle - real number
     Outputs: None
 
     Author: Liam Walker
     Last Update: 2022/02/13
-    '''
+    """
     # Activate and deactivate the motor
     bot.activate_stepper_motor()
     # Keep track of the tilt angle of the hopper to control its speed
@@ -260,16 +263,20 @@ def drop_container(duration):
     bot.rotate_stepper_ccw(duration)
     bot.deactivate_stepper_motor()
 
-#========================= Container Categorizing and Management =========================#
+
+# ========================= Container Categorizing and Management ========================= #
+
 
 # New code coming soon
 def dispense_container():
     pass
 
-#========================= Main Function =========================#
+
+# ========================= Main Function ========================= #
+
 
 def main():
-    '''
+    """
     Function: main()
 
     Purpose: Main function, calls all other functions and maintains program's
@@ -280,21 +287,20 @@ def main():
 
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
-    '''
+    """
     while True:
         destination = dispense_container()
         if destination == -1:
             break
-        line_follow(bin_num)
+        line_follow(destination)
         time.sleep(1)
         drop_container(5)
         time.sleep(1)
         line_follow()
         print(check_home(0.025))
 
+
 main()
-
-
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 # STUDENT CODE ENDS
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------

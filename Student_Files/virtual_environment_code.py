@@ -1,74 +1,77 @@
 import sys
 import time
 import random
-sys.path.append('../')
 from Common.project_library import *
+
+sys.path.append('../')
 
 # Modify the information below according to you setup and uncomment the entire section
 
 # 1. Interface Configuration
-project_identifier = 'P3B' # enter a string corresponding to P0, P2A, P2A, P3A, or P3B
-ip_address = '169.254.134.253' # enter your computer's IP address
-hardware = False # True when working with hardware. False when working in the simulation
+project_identifier = 'P3B'  # enter a string corresponding to P0, P2A, P2A, P3A, or P3B
+ip_address = '169.254.134.253'  # enter your computer's IP address
+hardware = False  # True when working with hardware. False when working in the simulation
 
 # 2. Servo Table configuration
-short_tower_angle = 270 # enter the value in degrees for the identification tower 
-tall_tower_angle = 0 # enter the value in degrees for the classification tower
-drop_tube_angle = 180 # enter the value in degrees for the drop tube. clockwise rotation from zero degrees
+short_tower_angle = 270  # enter the value in degrees for the identification tower
+tall_tower_angle = 0  # enter the value in degrees for the classification tower
+drop_tube_angle = 180  # enter the value in degrees for the drop tube. clockwise rotation from zero degrees
 
 # 3. Qbot Configuration
-bot_camera_angle = -21.5 # angle in degrees between -21.5 and 0
+bot_camera_angle = -21.5  # angle in degrees between -21.5 and 0
 
 # 4. Bin Configuration
 # Configuration for the colors for the bins and the lines leading to those bins.
 # Note: The line leading up to the bin will be the same color as the bin 
 
-bin1_offset = 0.17 # offset in meters
-bin1_color = [1,0,0] # e.g. [1,0,0] for red
+bin1_offset = 0.17  # offset in meters
+bin1_color = [1, 0, 0]  # e.g. [1,0,0] for red
 bin2_offset = 0.17
-bin2_color = [0,1,0]
+bin2_color = [0, 1, 0]
 bin3_offset = 0.17
-bin3_color = [0,0,1]
+bin3_color = [0, 0, 1]
 bin4_offset = 0.17
-bin4_color = [0,0,0]
+bin4_color = [0, 0, 0]
 
-#--------------- DO NOT modify the information below -----------------------------
+# --------------- DO NOT modify the information below -----------------------------
 
 if project_identifier == 'P0':
     QLabs = configure_environment(project_identifier, ip_address, hardware).QLabs
-    bot = qbot(0.1,ip_address,QLabs,None,hardware)
-    
-elif project_identifier in ["P2A","P2B"]:
+    bot = qbot(0.1, ip_address, QLabs, None, hardware)
+
+elif project_identifier in ["P2A", "P2B"]:
     QLabs = configure_environment(project_identifier, ip_address, hardware).QLabs
-    arm = qarm(project_identifier,ip_address,QLabs,hardware)
+    arm = qarm(project_identifier, ip_address, QLabs, hardware)
 
 elif project_identifier == 'P3A':
-    table_configuration = [short_tower_angle,tall_tower_angle,drop_tube_angle]
-    configuration_information = [table_configuration,None, None] # Configuring just the table
-    QLabs = configure_environment(project_identifier, ip_address, hardware,configuration_information).QLabs
-    table = servo_table(ip_address,QLabs,table_configuration,hardware)
-    arm = qarm(project_identifier,ip_address,QLabs,hardware)
-    
+    table_configuration = [short_tower_angle, tall_tower_angle, drop_tube_angle]
+    configuration_information = [table_configuration, None, None]  # Configuring just the table
+    QLabs = configure_environment(project_identifier, ip_address, hardware, configuration_information).QLabs
+    table = servo_table(ip_address, QLabs, table_configuration, hardware)
+    arm = qarm(project_identifier, ip_address, QLabs, hardware)
+
 elif project_identifier == 'P3B':
-    table_configuration = [short_tower_angle,tall_tower_angle,drop_tube_angle]
+    table_configuration = [short_tower_angle, tall_tower_angle, drop_tube_angle]
     qbot_configuration = [bot_camera_angle]
-    bin_configuration = [[bin1_offset,bin2_offset,bin3_offset,bin4_offset],[bin1_color,bin2_color,bin3_color,bin4_color]]
-    configuration_information = [table_configuration,qbot_configuration, bin_configuration]
-    QLabs = configure_environment(project_identifier, ip_address, hardware,configuration_information).QLabs
-    table = servo_table(ip_address,QLabs,table_configuration,hardware)
-    arm = qarm(project_identifier,ip_address,QLabs,hardware)
+    bin_configuration = [[bin1_offset, bin2_offset, bin3_offset, bin4_offset],
+                         [bin1_color, bin2_color, bin3_color, bin4_color]]
+    configuration_information = [table_configuration, qbot_configuration, bin_configuration]
+    QLabs = configure_environment(project_identifier, ip_address, hardware, configuration_information).QLabs
+    table = servo_table(ip_address, QLabs, table_configuration, hardware)
+    arm = qarm(project_identifier, ip_address, QLabs, hardware)
     bins = bins(bin_configuration)
-    bot = qbot(0.1,ip_address,QLabs,bins,hardware)
-    
+    bot = qbot(0.1, ip_address, QLabs, bins, hardware)
 
-#---------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------
 # STUDENT CODE BEGINS
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 
-#========================= Bottle loading with Q-Arm =========================#
+# ========================= Bottle loading with Q-Arm ========================= #
+
 
 def load_bottle(bottle_count, offset=0):
-    '''
+    """
     Function: load_bottle()
 
     Purpose: This function loads the current dispensed bottle onto the Q-Bot.
@@ -78,7 +81,7 @@ def load_bottle(bottle_count, offset=0):
 
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
-    '''
+    """
     # Constants for pick-up location for bottles and Q-Arm home location, and
     # gripper opening angle
     PICK_UP = (0.63, 0, 0.22)
@@ -95,7 +98,7 @@ def load_bottle(bottle_count, offset=0):
     # Create a list that orders the sequence of arm movement locations
     # assuming a start from home
     locations = [PICK_UP, ARM_HOME, drop_off]
-    # Go to every movment location and wait 2 seconds
+    # Go to every movement location and wait 2 seconds
     # If the location index is even, it is a drop-off or pick-up spot
     # In that case, control the gripper to either close or open depending
     # on the grip tracker and wait 2 seconds again
@@ -104,10 +107,10 @@ def load_bottle(bottle_count, offset=0):
         time.sleep(2)
         # If the current iteration of the loop is an even number, the
         # gripper must either open or close to handle the container
-        if (i % 2 == 0):
-            # (-1) ^ n is 1 for even n and -1 for odd n
-            # n in this case is grip, and when it is 0, 1 * 40 closes it
-            # when it is 1, -1 * 40 opens it
+        if i % 2 == 0:
+            # (-1) ^ grip is 1 for even grip values and -1 for odd grip
+            # values. When grip is 0, 1 * 40 closes it, and when it is 1,
+            # -1 * 40 opens it.
             arm.control_gripper(pow(-1, grip) * GRIPPER_ANGLE)
             grip += 1
             time.sleep(2)
@@ -117,7 +120,7 @@ def load_bottle(bottle_count, offset=0):
 
 
 def safe_return():
-    '''
+    """
     Function: safe_return()
 
     Purpose: This function moves the Q-Arm out of the way of the hopper
@@ -128,7 +131,7 @@ def safe_return():
 
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
-    '''
+    """
     arm.rotate_elbow(-15)
     arm.rotate_shoulder(-15)
     time.sleep(2)
@@ -138,7 +141,7 @@ def safe_return():
 
 
 def adjust_bottles(end_pos, offset=0.025):
-    '''
+    """
     Function: adjust_bottles()
 
     Purpose: This function pushes bottles currently on the hopper back to
@@ -149,7 +152,7 @@ def adjust_bottles(end_pos, offset=0.025):
 
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
-    '''
+    """
     # Calculate push start and end location based on the given offsets and
     # ending positions
     start = (offset, -0.3, 0.45)
@@ -167,10 +170,12 @@ def adjust_bottles(end_pos, offset=0.025):
     # Move Q-Arm safely out of the way
     safe_return()
 
-#========================= Q-Bot Movement and Positioning =========================#
+
+# ========================= Q-Bot Movement and Positioning ========================= #
+
 
 def check_home(threshold=0.05):
-    '''
+    """
     Function: check_home()
 
     Purpose: This function checks whether the Q-Bot is within an acceptable
@@ -181,12 +186,12 @@ def check_home(threshold=0.05):
 
     Author: Mohammad Mahdi Mahboob, Liam Walker
     Last Update: 2022/02/07
-    '''
+    """
     # Constant to track the Q-Bot's home (stopping) position
     BOT_HOME = (1.5, 0, 0)
     # Get the bot's current position
     pos = bot.position()
-    # Check each coordinate of the home position against the correspinding
+    # Check each coordinate of the home position against the corresponding
     # coordinate of the bot. If they are further than the threshold distance,
     # return -3000 to indicate it is not there. If all 3 positions are within
     # the threshold, then return the difference between the home position
@@ -199,20 +204,20 @@ def check_home(threshold=0.05):
 
 
 def bot_align(home=False):
-    '''
+    """
     Function: bot_align()
 
     Purpose: This function aligns the bot line sensors to the line so that the
     hopper faces perpendicular to boxes or the Q-Arm.
-    
+
     Inputs: home - Boolean (default to False)
     Outputs: None
 
     Author: Liam Walker, Mohammad Mahdi Mahboob
     Last Update: 2022/02/07
-    '''
+    """
     # Read the value of the sensors until [1, 1] has been read twice to
-    # Ensure it is moreso in the middle. If it has not been read twice,
+    # Ensure it is more so in the middle. If it has not been read twice,
     # slightly rotate the bot towards the line.
     readings = bot.line_following_sensors()
     # Keep count of the location of the wires. Initial calculation is done
@@ -251,7 +256,7 @@ def bot_align(home=False):
 
 
 def line_follow(bin_num=-1):
-    '''
+    """
     Function: line_follow()
 
     Purpose: This function moves the Q-Bot along the line until it reaches
@@ -262,11 +267,11 @@ def line_follow(bin_num=-1):
 
     Author: Mohammad Mahdi Mahboob, Liam Walker
     Last Update: 2022/02/13
-    '''
+    """
     # Turn on the ultrasonic sensor
     bot.activate_ultrasonic_sensor()
     # Constants for dictating minimum and maximum thresholds to determine
-    # if the bot has passed a bin, and for the mimimum speed of the bot's
+    # if the bot has passed a bin, and for the minimum speed of the bot's
     # wheels
     PROX_DIST = 0.1
     PASS_DIST = 0.2
@@ -287,7 +292,7 @@ def line_follow(bin_num=-1):
             cur_bin += 1
             encounter_bin = True
         # Else if readings are far away then a bin has been passed, reset
-        # flag to False to detect the next bin
+        # flag to False and detect the next bin
         elif encounter_bin and bot.read_ultrasonic_sensor() > PASS_DIST:
             encounter_bin = False
         # Output to check if bin detection is correct
@@ -342,18 +347,18 @@ def line_follow(bin_num=-1):
 
 
 def drop_container(angle):
-    '''
+    """
     Function: drop_container()
 
     Purpose: This function rotates the actuator to tilt the hopper and
-    drop the containers inside of the bin.
+    drop the containers inside the bin.
 
     Inputs: angle - real number
     Outputs: None
 
     Author: Liam Walker
     Last Update: 2022/02/13
-    '''
+    """
     # Activate and deactivate the motor
     bot.activate_stepper_motor()
     # Keep track of the tilt angle of the hopper to control its speed
@@ -369,10 +374,12 @@ def drop_container(angle):
     bot.rotate_hopper(0)
     bot.deactivate_stepper_motor()
 
-#========================= Container Categorizing and Management =========================#
+
+# ========================= Container Categorizing and Management ========================= #
+
 
 def extract_container_info(bottle_id):
-    '''
+    """
     Function: extract_container_info()
 
     Purpose: This function dispenses a container onto the turntable and
@@ -383,7 +390,7 @@ def extract_container_info(bottle_id):
 
     Author: Alvin Qian
     Last Update: 2022/01/31
-    '''
+    """
     # Spawn the next bottle and get its information. Note that the 3rd item given
     # from the function above is a string formatted as 'bin##' where ## is a
     # number which can be extracted using substring and parsed as int. Do this and
@@ -393,11 +400,11 @@ def extract_container_info(bottle_id):
 
 
 def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
-    '''
+    """
     Function: dispense_containers()
 
     Purpose: This function takes the list of remaining bottles and spawns
-    them onto the turntable, and decides whether or not it can be picked up
+    them onto the turntable, and decides whether it can be picked up
     at the current turn.
 
     Inputs: bottles - list of integers; has_bottle - Boolean (default to
@@ -407,13 +414,13 @@ def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
 
     Author: Alvin Qian
     Last Update: 2022/02/13
-    '''
+    """
     # Quickly sets tracker variables to 0
     # Track the number of bottles, the total mass and the destination bins
     # with counters set to 0
     bottle_count, total_mass, dest_bin = [0] * 3
-    # If a botlle does not exist on the table right now, spawn one and use its
-    # information and baing them
+    # If a bottle does not exist on the table right now, spawn one and use its
+    # information
     if not has_bottle:
         # bottles.pop() gets and removes the last item in the randomized bottles list
         bottle_info = extract_container_info(bottles.pop())
@@ -433,12 +440,12 @@ def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
         bottle_info = extract_container_info(bottles.pop())
         print(bottle_info)
         # If the current total mass and the current container mass are below
-        # 90 for the hopper wieght limit cutoff, and the destination of the
+        # 90 for the hopper weight limit cutoff, and the destination of the
         # current spawned container matches.
         if bottle_info[0] + total_mass < 90 and bottle_info[1] == main_dest:
             load_bottle(bottle_count, offset)
             bottle_count += 1
-        # Otherwise if the mass is too much or there is a mismatch of bins,
+        # Otherwise, if the mass is too much or there is a mismatch of bins,
         # return True to indicate there is a container still on the table,
         # followed by the destination of the loaded containers and the
         # information of the most recently dropped bottle.
@@ -453,7 +460,7 @@ def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
 
 
 def random_container_list(size=18):
-    '''
+    """
     Function: random_container_list()
 
     Purpose: This function creates a randomly shuffled order of bottles as
@@ -464,7 +471,7 @@ def random_container_list(size=18):
 
     Author: Alvin Qian, Mohammad Mahdi Mahboob
     Last Update: 2022/01/31
-    '''
+    """
     # Create the list and add 3 copies of each bottle type
     bottles_order = []
     for i in range(3):
@@ -480,10 +487,12 @@ def random_container_list(size=18):
     bottles_order.reverse()
     return bottles_order[-size:]
 
-#========================= Main Function =========================#
+
+# ========================= Main Function ========================= #
+
 
 def main():
-    '''
+    """
     Function: main()
 
     Purpose: Main function, calls all other functions and maintains program's
@@ -494,7 +503,7 @@ def main():
 
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
-    '''
+    """
     bottles = random_container_list(5)
     # Holds information about the bottle type for reloading. Information
     # pertains to mass at [0] and destination at [1]. Useful for loading
@@ -521,9 +530,9 @@ def main():
         offset = check_home(0.025)
         print(offset)
 
+
 main()
 
-
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 # STUDENT CODE ENDS
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
