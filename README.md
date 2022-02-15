@@ -33,7 +33,7 @@ run [physical_environment_code.py][3] when connected to a physical Q-Bot.
   - [project_sample2_updated.py][7]: Version 4 (Updated 2022/02/06)
   - [corrected_project_sample.py][8]: Version 5 (Updated 2022/02/06)
 - [Common][9] contains common libraries required to run Q-Labs software
-- Sorting system codes for either environment can be found inside [Student_Files][10].
+- [Student_Files][10] contains code for running entire system in bot virtual and physical environments.
 
 [1]: Student_Files/virtual_environment_code.py
 [2]: Previous_Versions
