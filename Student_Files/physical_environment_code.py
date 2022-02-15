@@ -238,8 +238,8 @@ def drop_container(duration):
 def line_sensor_test():
     tests = ["Testing [1, 1]", "Testing [1, 0]", "Testing [0, 0]", "Testing [0, 1]"]
     print("Testing line sensor")
-    for test in tests:
-        print(test)
+    for test_case in tests:
+        print(test_case)
         for i in range(5):
             print(bot.line_following_sensors())
             time.sleep(2)
@@ -282,16 +282,6 @@ def ultrasonic_test_2():
         time.sleep(3)
 
 
-def hopper_test():
-    bot.activate_stepper_motor()
-    bot.rotate_stepper_motor_cw(5)
-    print("Testing stepper motor and hopper")
-    for i in range(5):
-        time.sleep(3)
-        bot.rotate_stepper_motor_ccw(5)
-        time.sleep(3)
-
-
 # ========================= Main Function ========================= #
 
 
@@ -321,7 +311,7 @@ def main():
 def test():
     print("Running Tests")
     tests = [line_sensor_test, ultrasonic_test_1,
-             ultrasonic_test_2, hopper_test]
+             ultrasonic_test_2]
     for test_function in tests:
         time.sleep(5)
         print("Prepare for next test")
@@ -331,9 +321,6 @@ def test():
 
 
 # ======================================================================= #
-
-test()
-# main()
 
 # ---------------------------------------------------------------------------------
 # STUDENT CODE ENDS
