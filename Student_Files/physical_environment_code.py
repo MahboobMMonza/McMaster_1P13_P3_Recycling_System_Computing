@@ -210,9 +210,9 @@ def line_follow(bin_num=-1, start_bin=-1):
     return cur_bin - 1
 
 
-def drop_container(duration):
+def drop_bottle(duration):
     """
-    Function: drop_container()
+    Function: drop_bottle()
 
     Purpose: This function rotates the actuator to tilt the hopper and
     drop the containers inside the bin.
@@ -301,7 +301,7 @@ def main():
     duration = 5
     destination = line_follow(2)
     time.sleep(1)
-    drop_container(duration)
+    drop_bottle(duration)
     line_follow(5, destination)
 
 

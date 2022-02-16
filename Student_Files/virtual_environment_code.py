@@ -97,13 +97,13 @@ def load_bottle(bottle_count, offset=0):
     # Create a list that orders the sequence of arm movement locations
     # assuming a start from home
     locations = [PICK_UP, ARM_HOME, drop_off]
-    # Go to every movement location and wait 2 seconds
-    # If the location index is even, it is a drop-off or pick-up spot
-    # In that case, control the gripper to either close or open depending
-    # on the grip tracker and wait 2 seconds again. Pick-up and drop-off
-    # spots have even indexes in locations. Once loading is done, move
-    # arm safely away and push bottles to make room for any other bottles
-    # that may be added.
+    # Go to every movement location and wait 2 seconds. If the location
+    # index is even, it is a drop-off or pick-up spot In that case,
+    # control the gripper to either close or open depending on the grip
+    # tracker and wait 2 seconds again. Pick-up and drop-off spots have
+    # even indexes in locations. Once loading is done, move arm safely
+    # away and push bottles to make room for any other bottles that may
+    # be added.
     for i in range(len(locations)):
         arm.move_arm(*locations[i])
         time.sleep(2)
@@ -160,12 +160,11 @@ def adjust_bottles(end_pos, offset=0.025):
     start = (offset, -0.3, 0.45)
     drop = (offset, end_pos, 0.45)
     locations = [start, drop]
-    # Close the gripper fully to fit inside the hopper. Go to
-    # the start position, and then go to the drop location to
-    # push the containers inwards of the hopper. To prevent any
-    # accidental grips in the virtual environment, open the arm
-    # slightly. Move the arm away from the hopper and reset the
-    # arm to its home position
+    # Close the gripper fully to fit inside the hopper. Go to the start
+    # position, and then go to the drop location to push the bottles
+    # inwards of the hopper. To prevent any accidental grips in the virtual
+    # environment, open the arm slightly. Move the arm away from the hopper
+    # and reset the arm to its home position.
     time.sleep(2)
     arm.control_gripper(45)
     time.sleep(2)
@@ -357,12 +356,12 @@ def line_follow(bin_num=-1):
         bot.deactivate_ultrasonic_sensor()
 
 
-def drop_container(angle, slow_bin=True):
+def drop_bottle(angle, slow_bin=True):
     """
-    Function: drop_container()
+    Function: drop_bottle()
 
     Purpose: This function rotates the actuator to tilt the hopper and
-    drop the containers inside the bin.
+    drop the bottles inside the bin.
 
     Inputs: angle - real number; slow_bin - Boolean (default to False)
     Outputs: None
@@ -375,7 +374,7 @@ def drop_container(angle, slow_bin=True):
     # Keep track of the tilt angle of the hopper to control its speed,
     # and calculate the number of steps required for the rate based
     # on slow_bin. This allows the bot to tilt faster when depositing
-    # metal cans and tilt slower when depositing other containers.
+    # metal cans and tilt slower when depositing other bottles.
     # The step size calculation is set to 1/2 the angle if the
     # slow_bin is True, since True evaluates to 1, and 1 + 1 = 2.
     # When slow_bin is False, it evaluates to 0, and the step size
@@ -385,7 +384,7 @@ def drop_container(angle, slow_bin=True):
     # Tilt the hopper until the given angle is reached by updating
     # tilt and setting the rotation value to tilt's new value.
     # Pause slightly after each tilt and then wait 3 seconds to
-    # deposit all containers safely, before resetting the hopper
+    # deposit all bottles safely, before resetting the hopper
     # and deactivating the motor.
     while tilt < angle:
         tilt += angle / 2
@@ -396,15 +395,15 @@ def drop_container(angle, slow_bin=True):
     bot.deactivate_stepper_motor()
 
 
-# ========================= Container Categorizing and Management ========================= #
+# ========================= Bottle Categorizing and Management ========================= #
 
 
-def extract_container_info(bottle_id):
+def extract_bottle_info(bottle_id):
     """
-    Function: extract_container_info()
+    Function: extract_bottle_info()
 
-    Purpose: This function dispenses a container onto the turntable and
-    gets all necessary information from it.
+    Purpose: This function dispenses a bottle onto the turntable and gets all
+    necessary information from it.
 
     Inputs: bottle_id - integer
     Outputs: 2-tuple of integers
@@ -412,17 +411,18 @@ def extract_container_info(bottle_id):
     Author: Alvin Qian
     Last Update: 2022/01/31
     """
-    # Spawn the next bottle and get its information. Note that the 3rd item given
-    # from the function above is a string formatted as 'bin##' where ## is a
-    # number which can be extracted using substring and parsed as int. Do this and
-    # return a pair of integers with mass first and destination bin second.
+    # Spawn the next bottle and get its information. Note that the 3rd item
+    # given from the function above is a string formatted as 'bin##' where
+    # ## is a number which can be extracted using substring and parsed as
+    # int. Do this and return a pair of integers with mass first and
+    # destination bin second.
     info = table.dispense_container(bottle_id, True)
     return info[1], int(info[2][3:])
 
 
-def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
+def dispense_bottles(bottles, offset=0, has_bottle=False, bottle_info=None):
     """
-    Function: dispense_containers()
+    Function: dispense_bottles()
 
     Purpose: This function takes the list of remaining bottles and spawns
     them onto the turntable, and decides whether it can be picked up
@@ -436,23 +436,24 @@ def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
     Author: Alvin Qian
     Last Update: 2022/02/13
     """
-    # Quickly sets tracker variables to 0
-    # Track the number of bottles, the total mass and the destination bins
-    # with counters set to 0
+    # Track the number of bottles, the total mass, and destination bins,
+    # setting all counters to 0
     bottle_count, total_mass, dest_bin = [0] * 3
     # If a bottle does not exist on the table right now, spawn one and use its
     # information. Note that bottles.pop() removes the last item of the list.
     if not has_bottle:
-        bottle_info = extract_container_info(bottles.pop())
+        bottle_info = extract_bottle_info(bottles.pop())
     # Add the total mass of the bottle to total_mass and set the destination
     # to that of the bottle. Load the bottle, keeping track of the count to
     # indicate how deep inside the hopper the Q-Arm must reach to safely
-    # load the container. Ensure the offset of the hopper position is passed
-    # onto the Q-Arm.
+    # load the bottle. Ensure the offset of the hopper position is passed
+    # onto the Q-Arm. Reset has_bottle to False and track if another bottle
+    # has been left on the table.
     total_mass += bottle_info[0]
     main_dest = bottle_info[1]
     load_bottle(bottle_count, offset)
     bottle_count += 1
+    has_bottle = False
     # Spawn and potentially load bottles as long as there are less than
     # 3 loaded bottles and the total mass of the spawned and loaded
     # bottles is below the 90 gram threshold, and if there are still
@@ -465,31 +466,32 @@ def dispense_containers(bottles, has_bottle=False, bottle_info=None, offset=0):
         # is below 90, and the destination of the spawned bottle matches
         # the destination of the loaded bottles, then update the count
         # and load the bottle.
-        bottle_info = extract_container_info(bottles.pop())
+        bottle_info = extract_bottle_info(bottles.pop())
         print(bottle_info)
         if bottle_info[0] + total_mass < 90 and bottle_info[1] == main_dest:
             load_bottle(bottle_count, offset)
             bottle_count += 1
         # Otherwise, if the mass is too much or there is a mismatch of bins,
-        # return True to indicate there is a container still on the table,
-        # followed by the destination of the loaded containers and the
-        # information of the most recently dropped bottle.
+        # set has_bottle to True to indicate that a bottle remains on the
+        # table, and break from the loop.
         else:
             # For debugging
-            print("Bin #:", main_dest, "\nTotal mass:", total_mass, "\n# of bottles:", bottle_count)
-            return True, main_dest, bottle_info
-    # Return False to indicate there is no containers on the table, followed
-    # by the destination of the loaded containers and the information of the
-    # most recently dropped bottle.
-    return False, main_dest, bottle_info
+            has_bottle = True
+            break
+    # Return has_bottle to indicate there is no bottles on the table,
+    # followed by the destination of the loaded bottles and the
+    # information of the most recently dropped bottle.
+    print("Bin #:", main_dest, "\nTotal mass:",
+          total_mass, "\n# of bottles:", bottle_count)
+    return has_bottle, main_dest, bottle_info
 
 
-def random_container_list(size=18):
+def random_bottle_list(size=18):
     """
-    Function: random_container_list()
+    Function: random_bottle_list()
 
-    Purpose: This function creates a randomly shuffled order of bottles as
-    a list. The list is shuffled with 3 copies of each bottle.
+    Purpose: This function creates a randomly shuffled order of bottles
+    as a list. The list is shuffled with 3 copies of each bottle.
 
     Inputs: size - integer (default to 18)
     Outputs: Randomized list of integers
@@ -508,7 +510,7 @@ def random_container_list(size=18):
     # n = size.
     random.shuffle(bottles_order)
     # For debugging, print the sub-list of elements that will be returned
-    print('Order of bottle dispensions: ', bottles_order[:size])
+    print('Order of bottle dispensing: ', bottles_order[:size])
     bottles_order.reverse()
     return bottles_order[-size:]
 
@@ -536,20 +538,21 @@ def main():
     has_bottle = False
     # Keeps track of the offset of the Q-Bot from original home position
     offset = 0
-    # Generate the random order of containers
-    bottles = random_container_list(5)
+    # Generate the random order of bottles. Remove size input to run full
+    # length program with 3 occurrences of all 6 bottle types.
+    bottles = random_bottle_list(5)
     # While there are still bottles left in the list or the table, run cycles.
     while bottles or has_bottle:
         # Dispense and load bottles as needed. Check for any remaining bottles
         # on the table as well as get the destination bin number for dumping
-        # and information on remaining bottles. Load the containers after they
-        # spawn and move them to the corresponding bin. Dump the containers,
+        # and information on remaining bottles. Load the bottles after they
+        # spawn and move them to the corresponding bin. Dump the bottles,
         # then return home, and update the offset caused by returning.
-        has_bottle, bin_num, bottle_info = dispense_containers(
-            bottles, has_bottle, bottle_info, offset)
+        has_bottle, bin_num, bottle_info = dispense_bottles(
+            bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
         time.sleep(1)
-        drop_container(50, bin_num != 1)
+        drop_bottle(50, bin_num != 1)
         time.sleep(1)
         line_follow()
         offset = check_home(0.025)
