@@ -7,8 +7,8 @@
 
 This is a repository for the code created and used in McMaster University
 **Engineering 1P13 Project 3: Revenge of the Recycling System**. This code
-controls the Q-Arm and Q-Bot in the *Quanser Labs Virtual Environment* and can
-be adapted to use with the corresponding hardware.
+controls the Q-Arm and Q-Bot in the *Quanser Interactive Labs Virtual 
+Environment* and can be adapted to use with the corresponding hardware.
 
 ### Configuration
 
