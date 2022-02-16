@@ -1,11 +1,11 @@
 import sys
-import time
-import random
+from time import sleep
+from random import shuffle
 from Common.project_library import *
 
 sys.path.append('../')
 
-# Modify the information below according to you setup and uncomment the entire section
+# Modify the information below according to your setup and uncomment the entire section
 
 # 1. Interface Configuration
 project_identifier = 'P3B'  # enter a string corresponding to P0, P2A, P2A, P3A, or P3B
@@ -106,14 +106,14 @@ def load_bottle(bottle_count, offset=0):
     # be added.
     for i in range(len(locations)):
         arm.move_arm(*locations[i])
-        time.sleep(2)
+        sleep(2)
         if i % 2 == 0:
             # (-1) ^ grip is 1 for even grip values and -1 for odd grip
             # values. When grip is 0, 1 * 40 closes it, and when it is 1,
             # -1 * 40 opens it.
             arm.control_gripper(pow(-1, grip) * GRIPPER_ANGLE)
             grip += 1
-            time.sleep(2)
+            sleep(2)
     safe_return()
     adjust_bottles(drop_off[1], drop_off[0])
 
@@ -136,9 +136,9 @@ def safe_return():
     # home position.
     arm.rotate_elbow(-15)
     arm.rotate_shoulder(-15)
-    time.sleep(2)
+    sleep(2)
     arm.rotate_base(25)
-    time.sleep(2)
+    sleep(2)
     arm.home()
 
 
@@ -165,12 +165,12 @@ def adjust_bottles(end_pos, offset=0.025):
     # inwards of the hopper. To prevent any accidental grips in the virtual
     # environment, open the arm slightly. Move the arm away from the hopper
     # and reset the arm to its home position.
-    time.sleep(2)
+    sleep(2)
     arm.control_gripper(45)
-    time.sleep(2)
+    sleep(2)
     for i in range(2):
         arm.move_arm(*locations[i])
-        time.sleep(2)
+        sleep(2)
     arm.control_gripper(-15)
     safe_return()
 
@@ -249,7 +249,7 @@ def bot_align(home=False):
         speeds[1] = 0.025 + 0.025 * readings[0]
         # Rotate slightly, stop, then re-evaluate alignment and count
         bot.set_wheel_speed(speeds)
-        time.sleep(0.1)
+        sleep(0.1)
         bot.stop()
         readings = bot.line_following_sensors()
         count += (readings[0] + readings[1]) // 2
@@ -341,7 +341,7 @@ def line_follow(bin_num=-1):
         # the bot if it is turning and keeps it going if it is following
         # a line completely.
         bot.set_wheel_speed(speeds)
-        time.sleep(0.25)
+        sleep(0.25)
         # This product gives 0 for the sum of reading being 0 or 1 and 1
         # for 2 by exploiting integer division.
         speeds[0] = speeds[1] = SPEED * 2 * ((reading[1] + reading[0]) // 2)
@@ -370,7 +370,7 @@ def drop_bottle(angle, slow_bin=True):
     Last Update: 2022/02/13
     """
     # Activate motor before use
-    bot.activate_stepper_motor()
+    bot.activate_linear_actuator()
     # Keep track of the tilt angle of the hopper to control its speed,
     # and calculate the number of steps required for the rate based
     # on slow_bin. This allows the bot to tilt faster when depositing
@@ -389,10 +389,10 @@ def drop_bottle(angle, slow_bin=True):
     while tilt < angle:
         tilt += angle / 2
         bot.rotate_hopper(tilt)
-        time.sleep(0.15)
-    time.sleep(3)
+        sleep(0.15)
+    sleep(3)
     bot.rotate_hopper(0)
-    bot.deactivate_stepper_motor()
+    bot.deactivate_linear_actuator()
 
 
 # ========================= Bottle Categorizing and Management ========================= #
@@ -508,7 +508,7 @@ def random_bottle_list(size=18):
     # users can then pop from the back of the list in the original order. For
     # sub-lists, this returns the last n elements in the reversed list, where
     # n = size.
-    random.shuffle(bottles_order)
+    shuffle(bottles_order)
     # For debugging, print the sub-list of elements that will be returned
     print('Order of bottle dispensing: ', bottles_order[:size])
     bottles_order.reverse()
@@ -551,9 +551,9 @@ def main():
         has_bottle, bin_num, bottle_info = dispense_bottles(
             bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
-        time.sleep(1)
+        sleep(1)
         drop_bottle(50, bin_num != 1)
-        time.sleep(1)
+        sleep(1)
         line_follow()
         offset = check_home(0.025)
         print(offset)

@@ -5,7 +5,7 @@ from Common.project_library import *
 
 sys.path.append('../')
 
-# Modify the information below according to you setup and uncomment the entire section
+# Modify the information below according to your setup and uncomment the entire section
 
 # 1. Interface Configuration
 project_identifier = 'P3B'  # enter a string corresponding to P0, P2A, P2A, P3A, or P3B
@@ -223,13 +223,14 @@ def drop_bottle(duration):
     Author: Liam Walker
     Last Update: 2022/02/13
     """
-    # Activate and deactivate the motor
-    bot.activate_stepper_motor()
-    # Keep track of the tilt angle of the hopper to control its speed
-    bot.rotate_stepper_cw(duration)
+    # Activate the actuator, move the actuator out to tilt the hopper
+    # and hold the tilt for some time before moving the actuator back
+    # in to reset the hopper, then deactivate the actuator.
+    bot.activate_linear_actuator()
+    bot.linear_actuator_out(duration)
     time.sleep(3)
-    bot.rotate_stepper_ccw(duration)
-    bot.deactivate_stepper_motor()
+    bot.linear_actuator_in(duration)
+    bot.deactivate_linear_actuator()
 
 
 # ========================= Testing Plans ========================= #
