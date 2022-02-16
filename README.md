@@ -26,14 +26,14 @@ run [physical_environment_code.py][3] when connected to a physical Q-Bot.
 
 ### Navigation
 
-- [Previous_Versions][2] is a log of all code versions created prior to creating this repository
+- [Previous_Versions][2] is a log of all code versions created prior to initializing this repository
   - [project_sample.py][4]: Version 1 (Updated 2022/01/25 for **Design Review**)
   - [project_sample2.py][5]: Version 2 (Updated 2022/01/25 for post-review edits)
   - [project_sample_updated.py][6]: Version 3 (Updated 2022/01/31)
   - [project_sample2_updated.py][7]: Version 4 (Updated 2022/02/06)
   - [corrected_project_sample.py][8]: Version 5 (Updated 2022/02/06)
 - [Common][9] contains common libraries required to run Q-Labs software
-- [Student_Files][10] contains code for running entire system in bot virtual and physical environments.
+- [Student_Files][10] contains code for running entire system in both virtual and physical environments.
 
 [1]: Student_Files/virtual_environment_code.py
 [2]: Previous_Versions
