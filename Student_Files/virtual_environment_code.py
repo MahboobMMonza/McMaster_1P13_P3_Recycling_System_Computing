@@ -67,7 +67,7 @@ elif project_identifier == 'P3B':
 # STUDENT CODE BEGINS
 # ---------------------------------------------------------------------------------
 
-# ========================= Bottle loading with Q-Arm ========================= #
+# ========================= Bottle Loading with Q-Arm ========================= #
 
 
 def load_bottle(bottle_count, offset=0):
@@ -87,10 +87,8 @@ def load_bottle(bottle_count, offset=0):
     PICK_UP = (0.63, 0, 0.22)
     ARM_HOME = (0.406, 0, 0.483)
     GRIPPER_ANGLE = 40
-    # Calculated drop-off position based on the offset and the bottle count
-    # Offset is negative if the bot stopped past its home position, and
-    # is positive if it stopped before. A correction of 0.025 is applied
-    # for the hopper's initial position during a run.
+    # Calculated drop-off position based on the offset and the bottle count,
+    # with default bot home position correction applied
     drop_off = (0.025 + offset, -0.58 + (0.07 * bottle_count), 0.55)
     # Open/close grip tracker
     grip = 0
@@ -98,19 +96,13 @@ def load_bottle(bottle_count, offset=0):
     # assuming a start from home
     locations = [PICK_UP, ARM_HOME, drop_off]
     # Go to every movement location and wait 2 seconds. If the location
-    # index is even, it is a drop-off or pick-up spot In that case,
-    # control the gripper to either close or open depending on the grip
-    # tracker and wait 2 seconds again. Pick-up and drop-off spots have
-    # even indexes in locations. Once loading is done, move arm safely
-    # away and push bottles to make room for any other bottles that may
-    # be added.
+    # index is even, it is a drop-off or pick-up spot, so move gripper
+    # accordingly. Afterwards, push bottles inwards to make space for
+    # more bottles.
     for i in range(len(locations)):
         arm.move_arm(*locations[i])
         sleep(2)
         if i % 2 == 0:
-            # (-1) ^ grip is 1 for even grip values and -1 for odd grip
-            # values. When grip is 0, 1 * 40 closes it, and when it is 1,
-            # -1 * 40 opens it.
             arm.control_gripper(pow(-1, grip) * GRIPPER_ANGLE)
             grip += 1
             sleep(2)
@@ -195,12 +187,8 @@ def check_home(threshold=0.05):
     BOT_HOME = (1.5, 0, 0)
     # Get the bot's current position
     pos = bot.position()
-    # Check each coordinate of the home position against the corresponding
-    # coordinate of the bot. If they are further than the threshold distance,
-    # return -3000 to indicate it is not there. If all 3 positions are within
-    # the threshold, then return the difference between the home position
-    # y-coordinate and the bot's y-coordinate, as that is the most affected
-    # dimension by movement along the line in this area.
+    # Check each coordinate of home against the coordinates of the
+    # bot, and return a value indicating its offset from home.
     for i, j in zip(BOT_HOME, pos):
         if i - j > threshold:
             return -3000
@@ -224,30 +212,18 @@ def bot_align(home=False):
     # Ensure it is more so in the middle. If it has not been read twice,
     # slightly rotate the bot towards the line.
     readings = bot.line_following_sensors()
-    # Keep count of the location of the wires. Initial calculation is done
-    # using integer division with 2. This works because the only possible
-    # options are [0, 0], [0, 1], [1, 0], [1, 1], of which only sums of
-    # 0, 1, and 2 can be made. Integer division truncates the remainder, so
-    # 0 // 2 and 1 // 2 both give 0, while 2 // 2 gives 1, which would
-    # increment the counter whenever the sum is 2, which is when both sensors
-    # read 1.
+    # Track the number of [1, 1] readings, starting from the most
+    # recent reading
     count = (readings[0] + readings[1]) // 2
-    # List to track the wheel speeds and update them
+    # Track wheel speeds
     speeds = [0, 0]
     # Align the bot until 2 readings of [1, 1] are encountered.
     while count < 2:
         # Calculate the speed of the wheels based on sensor readings.
-        # When the left sensor reads high, the right wheel should spin faster.
-        # When the right sensor reads high, the left wheel should spin faster.
-        # Calculating using mathematics is slightly faster and better than
-        # using if statements for this since there is less branching involved.
-        # The [0, 0] is not accounted for because alignment is only successful
-        # after the bot has followed the line for a while, and all stop
-        # locations are after the bot moves straight for some time, so it is
-        # highly probable that at least one sensor is detecting the line.
+        # Turn left or right accordingly.
         speeds[0] = 0.025 + 0.025 * readings[1]
         speeds[1] = 0.025 + 0.025 * readings[0]
-        # Rotate slightly, stop, then re-evaluate alignment and count
+        # Move slightly, stop, then re-evaluate alignment and count
         bot.set_wheel_speed(speeds)
         sleep(0.1)
         bot.stop()
@@ -279,20 +255,15 @@ def line_follow(bin_num=-1):
     PROX_DIST = 0.1
     PASS_DIST = 0.2
     SPEED = 0.05
-    # tracks the number of bins passed
+    # Tracks the number of bins passed
     cur_bin = 0
-    # lists to hold line sensor readings and wheel speeds
-    reading, speeds = [], [0, 0]
+    # Tracks wheel speeds
+    speeds = [0, 0]
     # Flag to check if currently near a bin
     encounter_bin = False
     print('Target:', bin_num)
-    # While the bot is not at the desired bin or not home, follow the line
-    # and check to see if bins have been passed. A bin has been encountered
-    # if the distance just recently dropped below the minimum proximity
-    # distance, and it has been passed if the distance just recently
-    # exceeded the minimum passing distance. During any case, an update
-    # occurs only if one or the other of the two scenarios occur, so check
-    # for either scenario using elif and update values accordingly.
+    # Follow the line until enough bins have been encountered or until the
+    # bot has returned home.
     while cur_bin < bin_num or (bin_num == -1 and check_home(0.025) == -3000):
         # Check if bot has recently encountered a bin and update accordingly
         if bot.read_ultrasonic_sensor() < PROX_DIST and not encounter_bin:
@@ -303,12 +274,8 @@ def line_follow(bin_num=-1):
         elif encounter_bin and bot.read_ultrasonic_sensor() > PASS_DIST:
             encounter_bin = False
         print('Bins encountered:', cur_bin)
-        # Calculate the speed of the bot's wheels. Similar to the method
-        # dictated in the bot_align() function. Only difference is that a
-        # reading of [0, 0] can occur when attempting to turn left. As such,
-        # the bot should reflect this bias towards the left on a [0, 0]
-        # reading. Speed is calculated by multiplying the SPEED value with
-        # a multiplier determined by the possible conditions.
+        # Calculate the speed of the bot's wheels based on line sensor
+        # readings
         reading = bot.line_following_sensors()
         print("Readings:", reading)
         # Want something that maps readings to speeds along this scheme
@@ -317,38 +284,20 @@ def line_follow(bin_num=-1):
         # [0, 1] -> [2, 1]
         # [1, 0] -> [1, 2]
         # [1, 1] -> [2, 2]
-        # but through some sort of mathematical calculation. The bot_align()
-        # function's calculation already maps the left wheel perfectly, but
-        # the same logic would not account for the [0, 0] bias. Instead, set
-        # the default for the right wheel to be double the minimum speed,
-        # and subtract 1 for the [1, 0] case. This can be done by defaulting
-        # the right wheel to twice the speed and only slowing it down in the
-        # [1, 0] case.
+        # but through some sort of mathematical calculation to reduce
+        # branching, which sets speeds quicker and the bot follows
+        # the line faster.
         speeds[0] = SPEED * (1 + reading[1])
-        # The nested boolean is only True in the case of [1, 0], and that
-        # True gets converted into the integer value of 1 and subtracting
-        # from 2 gives 1, which is the desired speed of the wheel. For the
-        # rest of the cases, the boolean evaluates to False (0), and the
-        # multiplier is 2. This calculation reduces branching caused by if
-        # statements, allowing for faster calculations and thereby faster
-        # repetitions on average. This is also shorter to write.
         speeds[1] = SPEED * (2 - (reading[1] > reading[0]))
-        # Once calculations are complete, set the wheel speeds to the
-        # calculated values and move for a short while before determining
-        # if bot wheels have the same speed (i.e. [1, 1] was read) in a
-        # calculation. The calculation yields [0, 0] for all other values.
-        # Set the wheel speeds to the new calculated values, which stops
-        # the bot if it is turning and keeps it going if it is following
-        # a line completely.
+        # Set speeds to calculated values for a short while before
+        # stopping the bot if the wheel speeds don't match (i.e. it
+        # is turning).
         bot.set_wheel_speed(speeds)
         sleep(0.25)
-        # This product gives 0 for the sum of reading being 0 or 1 and 1
-        # for 2 by exploiting integer division.
         speeds[0] = speeds[1] = SPEED * 2 * ((reading[1] + reading[0]) // 2)
         bot.set_wheel_speed(speeds)
     # Once a stopping condition has been correctly met, stop the bot and
-    # align it according to the location it has stopped, then deactivate
-    # the sensors.
+    # align it, then deactivate the ultrasonic sensor
     else:
         bot.stop()
         bot_align(bin_num == -1)
@@ -373,18 +322,11 @@ def drop_bottle(angle, slow_bin=True):
     bot.activate_linear_actuator()
     # Keep track of the tilt angle of the hopper to control its speed,
     # and calculate the number of steps required for the rate based
-    # on slow_bin. This allows the bot to tilt faster when depositing
-    # metal cans and tilt slower when depositing other bottles.
-    # The step size calculation is set to 1/2 the angle if the
-    # slow_bin is True, since True evaluates to 1, and 1 + 1 = 2.
-    # When slow_bin is False, it evaluates to 0, and the step size
-    # is just the angle itself.
+    # on slow_bin. Full speed for metal cans, 1/2 speed otherwise.
     tilt = 0
     step_size = angle / (slow_bin + 1)
-    # Tilt the hopper until the given angle is reached by updating
-    # tilt and setting the rotation value to tilt's new value.
-    # Pause slightly after each tilt and then wait 3 seconds to
-    # deposit all bottles safely, before resetting the hopper
+    # Tilt the hopper until the given angle and then wait 3 seconds
+    # to deposit all bottles safely, before resetting the hopper
     # and deactivating the motor.
     while tilt < angle:
         tilt += angle / 2
@@ -429,9 +371,9 @@ def dispense_bottles(bottles, offset=0, has_bottle=False, bottle_info=None):
     at the current turn.
 
     Inputs: bottles - list of integers; has_bottle - Boolean (default to
-    False); bottle_info - 2-integer tuple (default to empty); offset -
-    real number (default to 0)
-    Outputs: 2-item tuple - Boolean first, integer tuple second.
+    False); bottle_info - integer 2-tuple (default to empty);
+    offset - real number (default to 0)
+    Outputs: 2-item tuple - Boolean first, integer 2-tuple second.
 
     Author: Alvin Qian
     Last Update: 2022/02/13
@@ -440,47 +382,34 @@ def dispense_bottles(bottles, offset=0, has_bottle=False, bottle_info=None):
     # setting all counters to 0
     bottle_count, total_mass, dest_bin = [0] * 3
     # If a bottle does not exist on the table right now, spawn one and use its
-    # information. Note that bottles.pop() removes the last item of the list.
+    # information
     if not has_bottle:
+        print("Next bottle ID:", bottles[-1])
         bottle_info = extract_bottle_info(bottles.pop())
-    # Add the total mass of the bottle to total_mass and set the destination
-    # to that of the bottle. Load the bottle, keeping track of the count to
-    # indicate how deep inside the hopper the Q-Arm must reach to safely
-    # load the bottle. Ensure the offset of the hopper position is passed
-    # onto the Q-Arm. Reset has_bottle to False and track if another bottle
-    # has been left on the table.
+        print(bottle_info)
+    # Add the mass of the bottle to total_mass and set the destination to the
+    # first bottle's bin. Track the count, load the bottle and prepare to
+    # track any bottles left on the turntable.
     total_mass += bottle_info[0]
     main_dest = bottle_info[1]
     load_bottle(bottle_count, offset)
     bottle_count += 1
     has_bottle = False
-    # Spawn and potentially load bottles as long as there are less than
-    # 3 loaded bottles and the total mass of the spawned and loaded
-    # bottles is below the 90 gram threshold, and if there are still
-    # bottles to spawn.
+    # Spawn and load up to 3 bottles if the total mass of all bottles is
+    # below 90 gram and the destinations are the same. If not, indicate
+    # that a bottle remains on the table and break from the loop.
     while total_mass < 90 and bottle_count < 3 and bottles:
-        # For debugging
         print("Next bottle ID:", bottles[-1])
-        # Remove the last item from the list and spawn it. If the mass
-        # of the bottle along with that of any previously loaded ones
-        # is below 90, and the destination of the spawned bottle matches
-        # the destination of the loaded bottles, then update the count
-        # and load the bottle.
         bottle_info = extract_bottle_info(bottles.pop())
         print(bottle_info)
         if bottle_info[0] + total_mass < 90 and bottle_info[1] == main_dest:
             load_bottle(bottle_count, offset)
             bottle_count += 1
-        # Otherwise, if the mass is too much or there is a mismatch of bins,
-        # set has_bottle to True to indicate that a bottle remains on the
-        # table, and break from the loop.
         else:
-            # For debugging
             has_bottle = True
             break
-    # Return has_bottle to indicate there is no bottles on the table,
-    # followed by the destination of the loaded bottles and the
-    # information of the most recently dropped bottle.
+    # Return all necessary information regarding destination and bottles
+    # left on the table
     print("Bin #:", main_dest, "\nTotal mass:",
           total_mass, "\n# of bottles:", bottle_count)
     return has_bottle, main_dest, bottle_info
@@ -509,21 +438,20 @@ def random_bottle_list(size=18):
     # sub-lists, this returns the last n elements in the reversed list, where
     # n = size.
     shuffle(bottles_order)
-    # For debugging, print the sub-list of elements that will be returned
     print('Order of bottle dispensing: ', bottles_order[:size])
     bottles_order.reverse()
     return bottles_order[-size:]
 
 
-# ========================= Main Function ========================= #
+# ============================ Main Function ============================ #
 
 
 def main():
     """
     Function: main()
 
-    Purpose: Main function, calls all other functions and maintains program's
-    general workflow.
+    Purpose: Main function, calls all other functions and maintains
+    program's general workflow.
 
     Inputs: None
     Outputs: None
@@ -531,9 +459,8 @@ def main():
     Author: Mohammad Mahdi Mahboob
     Last Update: 2022/02/13
     """
-    # Holds information about the bottle type for reloading. Information
-    # pertains to mass at [0] and destination at [1]. Useful for loading
-    # any existing bottles on the table that were not loaded previously.
+    # Create variables to track any bottles left on the table during
+    # loading
     bottle_info = ()
     has_bottle = False
     # Keeps track of the offset of the Q-Bot from original home position
@@ -541,13 +468,11 @@ def main():
     # Generate the random order of bottles. Remove size input to run full
     # length program with 3 occurrences of all 6 bottle types.
     bottles = random_bottle_list(5)
-    # While there are still bottles left in the list or the table, run cycles.
+    # While there are still bottles left in the list or the table, run
+    # cycles: dispense bottles and load them to hopper, tracking any that
+    # were left behind; transport them to the required bin, deposit them
+    # and return home, accounting for any error caused in the return.
     while bottles or has_bottle:
-        # Dispense and load bottles as needed. Check for any remaining bottles
-        # on the table as well as get the destination bin number for dumping
-        # and information on remaining bottles. Load the bottles after they
-        # spawn and move them to the corresponding bin. Dump the bottles,
-        # then return home, and update the offset caused by returning.
         has_bottle, bin_num, bottle_info = dispense_bottles(
             bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
