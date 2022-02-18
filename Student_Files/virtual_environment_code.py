@@ -1,9 +1,10 @@
 import sys
 from time import sleep
 from random import shuffle
-from Common.project_library import *
 
 sys.path.append('../')
+
+from Common.project_library import *
 
 # Modify the information below according to your setup and uncomment the entire section
 
@@ -22,7 +23,7 @@ bot_camera_angle = -21.5  # angle in degrees between -21.5 and 0
 
 # 4. Bin Configuration
 # Configuration for the colors for the bins and the lines leading to those bins.
-# Note: The line leading up to the bin will be the same color as the bin 
+# Note: The line leading up to the bin will be the same color as the bin
 
 bin1_offset = 0.17  # offset in meters
 bin1_color = [1, 0, 0]  # e.g. [1,0,0] for red
@@ -80,7 +81,7 @@ def load_bottle(bottle_count, offset=0):
     Outputs: None
 
     Author: Mohammad Mahdi Mahboob
-    Last Update: 2022/02/15
+    Last Update: 2022/02/17
     """
     # Constants for pick-up location for bottles and Q-Arm home location, and
     # gripper opening angle
@@ -89,7 +90,7 @@ def load_bottle(bottle_count, offset=0):
     GRIPPER_ANGLE = 40
     # Calculated drop-off position based on the offset and the bottle count,
     # with default bot home position correction applied
-    drop_off = (0.025 + offset, -0.58 + (0.07 * bottle_count), 0.55)
+    drop_off = (0.02 + offset, -0.58 + (0.07 * bottle_count), 0.55)
     # Open/close grip tracker
     grip = 0
     # Create a list that orders the sequence of arm movement locations
@@ -145,7 +146,7 @@ def adjust_bottles(end_pos, offset=0.025):
     Outputs: None
 
     Author: Mohammad Mahdi Mahboob
-    Last Update: 2022/02/15
+    Last Update: 2022/02/17
     """
     # Calculate push start and end location based on the given offsets and
     # ending positions, and put them in a list.
@@ -164,6 +165,7 @@ def adjust_bottles(end_pos, offset=0.025):
         arm.move_arm(*locations[i])
         sleep(2)
     arm.control_gripper(-15)
+    sleep(1)
     safe_return()
 
 
@@ -194,6 +196,23 @@ def check_home(threshold=0.05):
             return -3000
     return BOT_HOME[1] - pos[1]
 
+def fine_rotate(speed, duration=0.1):
+    """
+    Function: fine_rotate()
+
+    Purpose: This function rotates the bot in a slight increment at specified
+    wheel speeds to allow for more precise control.
+
+    Inputs: speed - 2-integer list; duration - real number (default 0.1)
+    Outputs: None
+
+    Author: Mohammad Mahdi Mahboob
+    Last Update: 2022/02/17
+    """
+    # Slightly rotate the bot at the specified speed and duration
+    bot.set_wheel_speed(speed)
+    time.sleep(duration)
+    bot.stop()
 
 def bot_align(home=False):
     """
@@ -206,33 +225,33 @@ def bot_align(home=False):
     Outputs: None
 
     Author: Liam Walker, Mohammad Mahdi Mahboob
-    Last Update: 2022/02/07
+    Last Update: 2022/02/17
     """
-    # Read the value of the sensors until [1, 1] has been read twice to
-    # Ensure it is more so in the middle. If it has not been read twice,
-    # slightly rotate the bot towards the line.
+    # Align the bot by turning the bot until [1, 1] has been read.
     readings = bot.line_following_sensors()
-    # Track the number of [1, 1] readings, starting from the most
-    # recent reading
-    count = (readings[0] + readings[1]) // 2
-    # Track wheel speeds
-    speeds = [0, 0]
-    # Align the bot until 2 readings of [1, 1] are encountered.
-    while count < 2:
-        # Calculate the speed of the wheels based on sensor readings.
-        # Turn left or right accordingly.
-        speeds[0] = 0.025 + 0.025 * readings[1]
-        speeds[1] = 0.025 + 0.025 * readings[0]
-        # Move slightly, stop, then re-evaluate alignment and count
-        bot.set_wheel_speed(speeds)
-        sleep(0.1)
+    print(home)
+    # Wheel speed settings
+    speeds = [[0.025, -0.025], [-0.025, 0.025]]
+    # Step tracker
+    steps = 0
+    # Rotate bot right to the edge of the line, in small steps,
+    # then count the steps taken turning left to the other
+    # edge, then turn back right half-way.
+    while readings[0] != 1:
+        fine_rotate(speeds[0])
         bot.stop()
         readings = bot.line_following_sensors()
-        count += (readings[0] + readings[1]) // 2
+    for i in range(2):
+        while readings[(i + 1) % 2] != 0:
+            fine_rotate(speeds[i])
+            steps += i
+            readings = bot.line_following_sensors()
+    for i in range(steps // 2 + 1):
+        fine_rotate(speeds[0])
     # If the bot is not home, move forward slightly to ensure it is dumping
     # inside a bin
     if not home:
-        bot.forward_distance(0.05)
+        bot.forward_distance(0.1)
 
 
 def line_follow(bin_num=-1):
@@ -246,7 +265,7 @@ def line_follow(bin_num=-1):
     Outputs: None
 
     Author: Mohammad Mahdi Mahboob, Liam Walker
-    Last Update: 2022/02/13
+    Last Update: 2022/02/17
     """
     # Turn on the ultrasonic sensor
     bot.activate_ultrasonic_sensor()
@@ -254,7 +273,7 @@ def line_follow(bin_num=-1):
     # if the bot has passed a bin, and to control the speed of the bot
     PROX_DIST = 0.1
     PASS_DIST = 0.2
-    SPEED = 0.05
+    SPEED = 0.025
     # Tracks the number of bins passed
     cur_bin = 0
     # Tracks wheel speeds
@@ -264,7 +283,7 @@ def line_follow(bin_num=-1):
     print('Target:', bin_num)
     # Follow the line until enough bins have been encountered or until the
     # bot has returned home.
-    while cur_bin < bin_num or (bin_num == -1 and check_home(0.025) == -3000):
+    while cur_bin < bin_num or (bin_num == -1 and check_home() == -3000):
         # Check if bot has recently encountered a bin and update accordingly
         if bot.read_ultrasonic_sensor() < PROX_DIST and not encounter_bin:
             cur_bin += 1
@@ -316,20 +335,22 @@ def drop_bottle(angle, slow_bin=True):
     Outputs: None
 
     Author: Liam Walker
-    Last Update: 2022/02/13
+    Last Update: 2022/02/17
     """
     # Activate motor before use
+    sleep(1)
     bot.activate_linear_actuator()
     # Keep track of the tilt angle of the hopper to control its speed,
     # and calculate the number of steps required for the rate based
     # on slow_bin. Full speed for metal cans, 1/2 speed otherwise.
     tilt = 0
+    print(slow_bin)
     step_size = angle / (slow_bin + 1)
     # Tilt the hopper until the given angle and then wait 3 seconds
     # to deposit all bottles safely, before resetting the hopper
     # and deactivating the motor.
     while tilt < angle:
-        tilt += angle / 2
+        tilt += step_size
         bot.rotate_hopper(tilt)
         sleep(0.15)
     sleep(3)
@@ -398,7 +419,7 @@ def dispense_bottles(bottles, offset=0, has_bottle=False, bottle_info=None):
     # Spawn and load up to 3 bottles if the total mass of all bottles is
     # below 90 gram and the destinations are the same. If not, indicate
     # that a bottle remains on the table and break from the loop.
-    while total_mass < 90 and bottle_count < 3 and bottles:
+    while bottle_count < 3 and bottles:
         print("Next bottle ID:", bottles[-1])
         bottle_info = extract_bottle_info(bottles.pop())
         print(bottle_info)
@@ -426,7 +447,7 @@ def random_bottle_list(size=18):
     Outputs: Randomized list of integers
 
     Author: Alvin Qian, Mohammad Mahdi Mahboob
-    Last Update: 2022/01/31
+    Last Update: 2022/02/13
     """
     # Create the list and add 3 copies of each bottle type
     bottles_order = []
@@ -457,7 +478,7 @@ def main():
     Outputs: None
 
     Author: Mohammad Mahdi Mahboob
-    Last Update: 2022/02/13
+    Last Update: 2022/02/17
     """
     # Create variables to track any bottles left on the table during
     # loading
@@ -469,18 +490,16 @@ def main():
     # length program with 3 occurrences of all 6 bottle types.
     bottles = random_bottle_list(5)
     # While there are still bottles left in the list or the table, run
-    # cycles: dispense bottles and load them to hopper, tracking any that
+    # cycle: dispense bottles and load them to hopper, tracking any that
     # were left behind; transport them to the required bin, deposit them
-    # and return home, accounting for any error caused in the return.
+    # and return home; account for any error caused in the return.
     while bottles or has_bottle:
         has_bottle, bin_num, bottle_info = dispense_bottles(
             bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
-        sleep(1)
         drop_bottle(50, bin_num != 1)
-        sleep(1)
         line_follow()
-        offset = check_home(0.025)
+        offset = check_home()
         print(offset)
 
 
