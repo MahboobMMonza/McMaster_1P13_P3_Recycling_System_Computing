@@ -22,7 +22,9 @@ computer IP address when using simulation.
 
 To use the virtual system code, run [virtual_environment_code.py][1] when a
 connection to the simulation has been made. To use the physical system code,
-run [physical_environment_code.py][3] when connected to a physical Q-Bot.
+modify and run [physical_environment_code.py][3] when connected to a physical Q-Bot.
+Note that further modification of physical system has been discontinued due to
+being unable to use the physical environment.
 
 ### Navigation
 
