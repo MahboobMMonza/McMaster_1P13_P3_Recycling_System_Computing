@@ -228,7 +228,8 @@ def bot_align(home=False):
     Author: Liam Walker, Mohammad Mahdi Mahboob
     Last Update: 2022/02/17
     """
-    # Align the bot by finding midpoint of [1, 1] readings
+    # Align the bot by finding midpoint of [1, 1] readings, not always perfect
+    # but does the job
     readings = bot.line_following_sensors()
     print(home)
     # Wheel speed settings
@@ -284,7 +285,7 @@ def line_follow(bin_num=-1):
     encounter_bin = False
     print('Target:', bin_num)
     # Follow the line until enough bins have been encountered or until the
-    # bot has returned home.
+    # bot has returned home
     while cur_bin < bin_num or (bin_num == -1 and check_home() == -3000):
         # Check if bot has recently encountered a bin and update accordingly
         if bot.read_ultrasonic_sensor() < PROX_DIST and not encounter_bin:
@@ -308,7 +309,7 @@ def line_follow(bin_num=-1):
         # is turning).
         bot.set_wheel_speed(speeds)
         sleep(0.25)
-        speeds[0] = speeds[1] = SPEED * 2 * ((reading[1] + reading[0]) // 2)
+        speeds[0] = speeds[1] = SPEED * 4 * ((reading[1] + reading[0]) // 2)
         bot.set_wheel_speed(speeds)
     # Once a stopping condition has been correctly met, stop the bot and
     # align it, then deactivate the ultrasonic sensor
@@ -330,7 +331,7 @@ def drop_bottle(angle, slow_bin=True):
     Outputs: None
 
     Author: Liam Walker
-    Last Update: 2022/02/17
+    Last Update: 2022/02/24
     """
     # Activate motor before use
     sleep(1)
@@ -348,7 +349,7 @@ def drop_bottle(angle, slow_bin=True):
         tilt += step_size
         bot.rotate_hopper(tilt)
         sleep(0.15)
-    sleep(3)
+    sleep(1.5)
     bot.rotate_hopper(0)
     bot.deactivate_linear_actuator()
 
@@ -390,7 +391,7 @@ def dispense_bottles(bottles, offset=0, has_bottle=False, bottle_info=None):
     Outputs: 2-item tuple - Boolean first, integer 2-tuple second.
 
     Author: Alvin Qian
-    Last Update: 2022/02/13
+    Last Update: 2022/02/24
     """
     # Track the number of bottles, the total mass, and destination bins,
     # setting all counters to 0
@@ -472,7 +473,7 @@ def main():
     Outputs: None
 
     Author: Mohammad Mahdi Mahboob
-    Last Update: 2022/02/17
+    Last Update: 2022/02/24
     """
     # Create variables to track any bottles left on the table during
     # loading
@@ -491,7 +492,9 @@ def main():
         has_bottle, bin_num, bottle_info = dispense_bottles(
             bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
-        drop_bottle(45, bin_num != 1)
+        # Just to be sure
+        for i in range(2):
+            drop_bottle(52, bin_num != 1)
         line_follow()
         offset = check_home()
         print(offset)
