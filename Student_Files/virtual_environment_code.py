@@ -497,7 +497,7 @@ def main():
         has_bottle, bin_num, bottle_info = dispense_bottles(
             bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
-        drop_bottle(50, bin_num != 1)
+        drop_bottle(45, bin_num != 1)
         line_follow()
         offset = check_home()
         print(offset)
