@@ -134,7 +134,7 @@ def safe_return():
     arm.home()
 
 
-def adjust_bottles(end_pos, offset=0.025):
+def adjust_bottles(end_pos, offset=0.02):
     """
     Function: adjust_bottles()
 
