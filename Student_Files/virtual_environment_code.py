@@ -418,6 +418,7 @@ def dispense_bottles(bottles, offset=0, has_bottle=False, bottle_info=None):
         print(bottle_info)
         if bottle_info[0] + total_mass < 90 and bottle_info[1] == main_dest:
             load_bottle(bottle_count, offset)
+            total_mass += bottle_info[0]
             bottle_count += 1
         else:
             has_bottle = True
