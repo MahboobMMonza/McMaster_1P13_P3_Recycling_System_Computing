@@ -93,8 +93,7 @@ def load_bottle(bottle_count, offset=0):
     drop_off = (0.02 + offset, -0.58 + (0.07 * bottle_count), 0.55)
     # Open/close grip tracker
     grip = 0
-    # Create a list that orders the sequence of arm movement locations
-    # assuming a start from home
+    # List the order of locations to visit
     locations = [PICK_UP, ARM_HOME, drop_off]
     # Go to every movement location and wait 2 seconds. If the location
     # index is even, it is a drop-off or pick-up spot, so move gripper
@@ -196,6 +195,7 @@ def check_home(threshold=0.05):
             return -3000
     return BOT_HOME[1] - pos[1]
 
+
 def fine_rotate(speed, duration=0.1):
     """
     Function: fine_rotate()
@@ -214,6 +214,7 @@ def fine_rotate(speed, duration=0.1):
     time.sleep(duration)
     bot.stop()
 
+
 def bot_align(home=False):
     """
     Function: bot_align()
@@ -227,7 +228,7 @@ def bot_align(home=False):
     Author: Liam Walker, Mohammad Mahdi Mahboob
     Last Update: 2022/02/17
     """
-    # Align the bot by turning the bot until [1, 1] has been read.
+    # Align the bot by finding midpoint of [1, 1] readings
     readings = bot.line_following_sensors()
     print(home)
     # Wheel speed settings
@@ -236,7 +237,8 @@ def bot_align(home=False):
     steps = 0
     # Rotate bot right to the edge of the line, in small steps,
     # then count the steps taken turning left to the other
-    # edge, then turn back right half-way.
+    # edge, then turn back right half-way to get midpoint of
+    # the line.
     while readings[0] != 1:
         fine_rotate(speeds[0])
         bot.stop()
@@ -293,19 +295,12 @@ def line_follow(bin_num=-1):
         elif encounter_bin and bot.read_ultrasonic_sensor() > PASS_DIST:
             encounter_bin = False
         print('Bins encountered:', cur_bin)
-        # Calculate the speed of the bot's wheels based on line sensor
-        # readings
+        # Calculate the speed of the bot's wheels based on the line
+        # sensor readings
         reading = bot.line_following_sensors()
         print("Readings:", reading)
-        # Want something that maps readings to speeds along this scheme
-        # Reading | Speed Multipliers
-        # [0, 0] -> [1, 2]
-        # [0, 1] -> [2, 1]
-        # [1, 0] -> [1, 2]
-        # [1, 1] -> [2, 2]
-        # but through some sort of mathematical calculation to reduce
-        # branching, which sets speeds quicker and the bot follows
-        # the line faster.
+        # Calculate wheel speeds to move forward on [1, 1], left on
+        # [1, 0] or [0, 0], and right on [0, 1].
         speeds[0] = SPEED * (1 + reading[1])
         speeds[1] = SPEED * (2 - (reading[1] > reading[0]))
         # Set speeds to calculated values for a short while before
@@ -346,9 +341,9 @@ def drop_bottle(angle, slow_bin=True):
     tilt = 0
     print(slow_bin)
     step_size = angle / (slow_bin + 1)
-    # Tilt the hopper until the given angle and then wait 3 seconds
-    # to deposit all bottles safely, before resetting the hopper
-    # and deactivating the motor.
+    # Tilt the hopper in the required amount of steps and wait 3
+    # seconds to ensure all contents have been dumped, then reset
+    # the hopper and deactivate the sensors.
     while tilt < angle:
         tilt += step_size
         bot.rotate_hopper(tilt)
@@ -374,11 +369,9 @@ def extract_bottle_info(bottle_id):
     Author: Alvin Qian
     Last Update: 2022/01/31
     """
-    # Spawn the next bottle and get its information. Note that the 3rd item
-    # given from the function above is a string formatted as 'bin##' where
-    # ## is a number which can be extracted using substring and parsed as
-    # int. Do this and return a pair of integers with mass first and
-    # destination bin second.
+    # Spawn the next bottle and get its information, parsing information as
+    # required, and return a pair of integers with mass first and destination
+    # bin second.
     info = table.dispense_container(bottle_id, True)
     return info[1], int(info[2][3:])
 
