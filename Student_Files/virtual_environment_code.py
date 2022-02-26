@@ -492,7 +492,7 @@ def main():
         has_bottle, bin_num, bottle_info = dispense_bottles(
             bottles, offset, has_bottle, bottle_info)
         line_follow(bin_num)
-        # Just to be sure
+        # Just to be sure, drop the bottles twice
         for i in range(2):
             drop_bottle(52, bin_num != 1)
         line_follow()
