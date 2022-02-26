@@ -144,19 +144,12 @@ def line_follow(bin_num=-1, start_bin=-1):
         elif encounter_bin and bot.read_ultrasonic_sensor() > PASS_DIST:
             encounter_bin = False
         print('Bins encountered:', cur_bin)
-        # Calculate the speed of the bot's wheels based on line sensor
-        # readings
+        # Calculate the speed of the bot's wheels based on the line
+        # sensor readings
         reading = bot.line_following_sensors()
         print("Readings:", reading)
-        # Want something that maps readings to speeds along this scheme
-        # Reading | Speed Multipliers
-        # [0, 0] -> [1, 2]
-        # [0, 1] -> [2, 1]
-        # [1, 0] -> [1, 2]
-        # [1, 1] -> [2, 2]
-        # but through some sort of mathematical calculation to reduce
-        # branching, which sets speeds quicker and the bot follows
-        # the line faster.
+        # Calculate wheel speeds to move forward on [1, 1], left on
+        # [1, 0] or [0, 0], and right on [0, 1].
         speeds[0] = SPEED * (1 + reading[1])
         speeds[1] = SPEED * (2 - (reading[1] > reading[0]))
         # Set speeds to calculated values for a short while before
@@ -164,7 +157,7 @@ def line_follow(bin_num=-1, start_bin=-1):
         # is turning).
         bot.set_wheel_speed(speeds)
         sleep(0.25)
-        speeds[0] = speeds[1] = SPEED * 2 * ((reading[1] + reading[0]) // 2)
+        speeds[0] = speeds[1] = SPEED * 4 * ((reading[1] + reading[0]) // 2)
         bot.set_wheel_speed(speeds)
     # Once a stopping condition has been correctly met, stop the bot and
     # align it, then deactivate the ultrasonic sensor

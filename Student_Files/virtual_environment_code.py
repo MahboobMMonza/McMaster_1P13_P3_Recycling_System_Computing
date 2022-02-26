@@ -236,10 +236,9 @@ def bot_align(home=False):
     speeds = [[0.025, -0.025], [-0.025, 0.025]]
     # Step tracker
     steps = 0
-    # Rotate bot right to the edge of the line, in small steps,
-    # then count the steps taken turning left to the other
-    # edge, then turn back right half-way to get midpoint of
-    # the line.
+    # Rotate bot right to the edge of the line, in small steps, then count the
+    # steps taken turning left to the other edge, then turn back right half-way
+    # to get midpoint of the line.
     while readings[0] != 1:
         fine_rotate(speeds[0])
         bot.stop()
@@ -249,7 +248,8 @@ def bot_align(home=False):
             fine_rotate(speeds[i])
             steps += i
             readings = bot.line_following_sensors()
-    for i in range(steps // 2 + 1):
+    # Rotate one step less if at home position for better alignment
+    for i in range(steps // 2 - home):
         fine_rotate(speeds[0])
     # If the bot is not home, move forward slightly to ensure it is dumping
     # inside a bin
