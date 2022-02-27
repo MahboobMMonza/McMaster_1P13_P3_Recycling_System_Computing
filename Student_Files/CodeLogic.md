@@ -67,7 +67,7 @@ off, priming it to detect the next bin.
 
 The wheel speed calculation is made to match the following reading-to-speed mapping:
 
-###### Table 1. Line Follow Sensor Readings Mapped to Q-Bot Wheel Speeds
+##### Table 1. Line Follow Sensor Readings Mapped to Q-Bot Wheel Speeds
 | Readings [L, R] | Wheel Speeds [L, R] |
 |:---------------:|:-------------------:|
 |     [0, 0]      |   [0.025, 0.050]    |
@@ -100,5 +100,12 @@ this makes it a useful tool for setting the speeds to 0, as both 0/2 and 1/2 hav
 Multiplying these quotients sets the wheel speed to be non-zero only in the [1, 1] case, allowing the Q-Bot to move
 forwards. The multiplication by 4 allows the Q-Bot to move faster for short bursts while maintaining controlled
 movement.
+
+#### *drop_bottle()*
+
+The need to control the tilting speed of the hopper arose from the occurrence of bottles being flung past bins during
+initial drop sequences. To control this effect, the rate of tilting was controlled using steps and delays for certain
+bottle types. This is akin to controlling the duration of the linear actuator being extended in steps, and therefore
+makes it a viable solution.
 
 [1]: virtual_environment_code.py
