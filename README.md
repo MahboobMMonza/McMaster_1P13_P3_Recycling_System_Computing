@@ -18,7 +18,7 @@ computer IP address when using simulation.
 
 To use the virtual system code, run [virtual_environment_code.py][1] when a connection to the simulation has been made.
 To use and modify the physical environment code, switch to the "hardware" branch. The code is located inside
-of [Student_Files][9] and is titled *physical_environment_code.py*. Note that the code is incomplete as further progress
+of [Student_Files][9] and is titled [physical_environment_code.py][10]. Note that the code is incomplete as further progress
 for the integrated hardware bonus was ceased.
 
 ### Navigation
@@ -49,3 +49,6 @@ for the integrated hardware bonus was ceased.
 [8]: Common
 
 [9]: Student_Files
+
+[10]: Student_Files/physical_environment_code.py
+
