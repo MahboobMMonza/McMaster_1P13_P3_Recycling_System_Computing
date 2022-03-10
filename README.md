@@ -13,12 +13,13 @@ Interactive Labs Virtual Environment* and can be adapted to use with the corresp
 To utilize this code, ensure that a Raspberry Pi 4 is available with system specifications for hardware and software
 meeting the minimum requirements outlined by McMaster University. Download and import [Common][8] and
 [Student_Files][9] folders **only** to the Pi. Ensure that Quanser Interactive Labs simulation program is installed with
-specifications outlined by McMaster University, or the corresponding hardware is present. Ensure IP address matches
-computer IP address when using simulation.
+specifications outlined by McMaster University, or the corresponding hardware is present. Ensure the IP address matches
+the computer IP address when using simulation.
 
 To use the virtual system code, run [virtual_environment_code.py][1] when a connection to the simulation has been made.
-To use and modify the physical environment code, switch to the "hardware" branch. The code is located inside
-of [Student_Files][9] and is titled *physical_environment_code.py*. Note that the code is incomplete as further progress
+A connection can be set up by changing the IP address indicated in the code to that of the Raspberry Pi being used. To 
+use and modify the physical environment code, switch to the "hardware" branch. The code is located inside of 
+[Student_Files][9] and is titled *physical_environment_code.py*. Note that the code is incomplete as further progress
 for the integrated hardware bonus was ceased.
 
 ### Navigation
